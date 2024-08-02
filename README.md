@@ -23,10 +23,16 @@ This program must be run from the same directory (file folder) that contains the
 3.	**PDFs/** - An empty directory that is the output file location for the .pdf file that is created by the invoice_generator.py program. This folder should be empty when the invoice_generator.py program is run, just to avoid confusion between previous (old) invoices and new.
 
 # Invoice_Data.xlsx
-The ‘invoice_data.xlsx’ file is an Excel spreadsheet that contains the following three worksheets: (1) Clients, (2) Timesheet, (3) Invoices. An explanation of each of these worksheets and the expected data is provided below:
+The ‘invoice_data.xlsx’ file is an Excel spreadsheet that contains the following three worksheets:    
+(1) Clients     
+(2) Timesheet    
+(3) Invoices    
+An explanation of each of these worksheets and the expected data is provided below:
 
 ## .xlsx Worksheet 1: ‘Clients’
 The ‘Clients’ worksheet is intended to act as a repository for all of the data pertaining to the clients of a particular business. The data contained in this worksheet is intended to be unique, meaning there should be no duplicate rows. Once the data is entered onto this page, it is added to other pages using formulas.  
+
+![clients.png](images/clients.jpg)
 
 Column A: **Client Number**     
 The client number is a unique ID number that is assigned to each new client in the ‘Clients’ worksheet.  ‘1’ represents the first client, ‘2’ the second client and so on. This number acts as a ‘key’ for the data associated with it, meaning it will be used to look up information about clients. In the ‘Timesheet’ and ‘Invoices’ worksheets, the client number can be used to reference all of the data associated with a particular client. This column cannot be blank, should be a sequential number. This data must be input manually and must be unique (no duplicates).       
