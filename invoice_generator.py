@@ -1,536 +1,313 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": 15,
-   "id": "87240a4a",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# import dependencies\n",
-    "# https://mlhive.com/2022/04/excel-to-docx-table-using-python-docx\n",
-    "import pandas as pd\n",
-    "import os\n",
-    "import openpyxl\n",
-    "import docx\n",
-    "import docx2pdf \n",
-    "\n",
-    "from os import remove, path\n",
-    "from docx import Document\n",
-    "from docx.shared import Inches\n",
-    "from docx.shared import Pt\n",
-    "from docx2pdf import convert\n",
-    "from datetime import datetime"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 16,
-   "id": "c6bde611",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# define the filepath to the desired xlsx workbook and docx document\n",
-    "cwd                = os.getcwd()\n",
-    "xlsx_filename      = 'Invoice_Data.xlsx'\n",
-    "# docx_filename      = 'Invoice_Template.docx'\n",
-    "\n",
-    "xlsx_full_filepath = cwd + '\\\\' + xlsx_filename\n",
-    "# docx_full_filepath = cwd + '\\\\' + docx_filename"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "1f020269",
-   "metadata": {},
-   "source": [
-    "### Manipulate the xlsx data"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 17,
-   "id": "7921f6ed",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# access the xlsx workbook\n",
-    "wb = openpyxl.load_workbook(filename = xlsx_full_filepath)"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 18,
-   "id": "77321bfe",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# access the worksheet names in the workbook\n",
-    "# wb.sheetnames"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 19,
-   "id": "96e8abc7",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# create a dictionary of data from each worksheet\n",
-    "\n",
-    "# 1. 'Clients'\n",
-    "# retrieve the client numbers from the 'Clients' worksheet\n",
-    "client_count            = max([item.value for item in wb['Clients']['A'] if isinstance(item.value, int) == True])\n",
-    "extra                   = client_count + 1\n",
-    "client_numbers_list_int = list(range(0, extra))\n",
-    "client_numbers_list_str = [str(int) for int in client_numbers_list_int]\n",
-    "\n",
-    "# create a dictionary of all the client data, using the CLIENT_NUMBERS as keys and the remainder of the client data as values\n",
-    "client_data_dictionary  = {}\n",
-    "# remove the first item in the list so the full list can be iterated (row '0' is a header column)\n",
-    "client_numbers_list_int.pop(0)\n",
-    "# add the extra item to the list so the full list can be iterated\n",
-    "client_numbers_list_int.append(extra)\n",
-    "for row_num in client_numbers_list_int:\n",
-    "    client_data_list = []\n",
-    "    for row in wb['Clients'][row_num]:\n",
-    "        client_data_list.append(row.value)\n",
-    "        client_data_dictionary[(row_num-1)] = client_data_list\n",
-    "        \n",
-    "# modify the dictionary to make the data readable/usable\n",
-    "for datarow in list(client_data_dictionary.values())[1:]:\n",
-    "    datarow[8] = datarow[8].strftime('%m-%d-%Y')"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 20,
-   "id": "9a13bb03",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# 2. 'Timesheet'\n",
-    "timesheet_data_dictionary = {}\n",
-    "entry_count = len([item.value for item in wb['Timesheet']['A'] if isinstance(item.value, int) == True])\n",
-    "extra = entry_count + 1\n",
-    "timesheet_entry_rows_list = list(range(0, extra))\n",
-    "\n",
-    "# create a dictionary of all the timesheet data, using ROW_NUMBERS as kes and data as values\n",
-    "timesheet_data_dictionary = {}\n",
-    "# remove the first item in the list so full list can be iterated (row '0' is a header column)\n",
-    "timesheet_entry_rows_list.pop(0)\n",
-    "# add the extra item to the list so the full list can be iterated\n",
-    "timesheet_entry_rows_list.append(extra)\n",
-    "for row_num in timesheet_entry_rows_list:\n",
-    "    timesheet_data_list = []\n",
-    "    for row in wb['Timesheet'][row_num]:\n",
-    "        timesheet_data_list.append(row.value)\n",
-    "        timesheet_data_dictionary[(row_num-1)] = timesheet_data_list\n",
-    "\n",
-    "# modify the dictionary to make the data readable/usable\n",
-    "for data_row in list(timesheet_data_dictionary.values())[1:]:\n",
-    "    for client_data in list(client_data_dictionary.values()):\n",
-    "        if data_row[0] == client_data[0]:                           \n",
-    "            data_row[1] = client_data[1]   # client name\n",
-    "            data_row[2] = client_data[2]   # client address\n",
-    "            # Date of Service\n",
-    "            data_row[6] = datetime(data_row[5], data_row[4], data_row[3]).strftime('%m-%d-%Y')   # Date of Service\n",
-    "            data_row[7] = datetime(data_row[5], data_row[4], data_row[3]).strftime('%A')         # Weekday of Service\n",
-    "            data_row[8] = datetime(data_row[5], data_row[4], data_row[3]).strftime('%B')         # Month of Service\n",
-    "            data_row[9] = data_row[9].strftime('%H:%M')                                          # start time\n",
-    "            data_row[10] = data_row[10].strftime('%H:%M')                                        # end time\n",
-    "            data_row[11] = (datetime.strptime(data_row[10], '%H:%M')\\\n",
-    "                            -datetime.strptime(data_row[9],'%H:%M')).seconds/3600                # hrs billed\n",
-    "            data_row[14] = ((datetime.strptime(data_row[10], '%H:%M')\\\n",
-    "                            -datetime.strptime(data_row[9],'%H:%M')).seconds/3600)*data_row[13]  # client per diem\n",
-    "        \n",
-    "# print(timesheet_data_dictionary)"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 21,
-   "id": "aad8c7c6",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# 3. 'Invoices'\n",
-    "# create a dictionary of all the invoice data, using the INVOICE_NUMBERS as keys and the remainder of the invoice data as values\n",
-    "# be sure to replace anything that appears as formulas with actual data from the client_data_list\n",
-    "invoice_count = len([item.value for item in wb['Invoices']['B']])-1 # subtract 1 because the first row is a header\n",
-    "extra = invoice_count + 1\n",
-    "invoice_list = [item.value for item in wb['Invoices']['B']]\n",
-    "\n",
-    "invoice_data_dictionary = {}\n",
-    "invoice_list.pop(0)\n",
-    "invoice_list.insert(0, '00000')\n",
-    "invoice_data_rows_list = list(range(1, len(invoice_list)+1))\n",
-    "\n",
-    "for i, invoice_number in enumerate(invoice_list):\n",
-    "    invoice_data_list = []\n",
-    "    for data in wb['Invoices'][i+1]:\n",
-    "        invoice_data_list.append(data.value)\n",
-    "        invoice_data_dictionary[invoice_number] = invoice_data_list\n",
-    "\n",
-    "# create a unique list of the client_numbers that appear in the timesheet dataset\n",
-    "client_numbers_to_invoice_list = list(set([data_row[0] for data_row in list(timesheet_data_dictionary.values())[1:]]))\n",
-    "        \n",
-    "# modify the dictionary to make the data readable/usable\n",
-    "for data_row in list(invoice_data_dictionary.values())[1:]:\n",
-    "    for client_data in list(client_data_dictionary.values()):\n",
-    "        if data_row[5] == client_data[0]:\n",
-    "            data_row[2]  = data_row[2].strftime('%m-%d-%Y') # Invoice Date\n",
-    "            data_row[3]  = data_row[3].strftime('%m-%d-%Y') # Period Start Date\n",
-    "            data_row[4]  = data_row[4].strftime('%m-%d-%Y') # Period End Date\n",
-    "            data_row[6]  = client_data[1]                   # Client Name\n",
-    "            data_row[7]  = client_data[2]                   # Client Address\n",
-    "            data_row[8]  = client_data[3]                   # Client Phone (Primary)\n",
-    "            data_row[9]  = client_data[5]                   # Client Email (Primary)\n",
-    "            data_row[10] = client_data[7]                   # Preferred Payment Method\n",
-    "            data_row[11] = client_data[8]                   # Enrollment Date\n",
-    "        \n",
-    "    for timesheet_data in list(timesheet_data_dictionary.values()):\n",
-    "        if data_row[5] in client_numbers_to_invoice_list:\n",
-    "            if data_row[5] == timesheet_data[0]:\n",
-    "                data_row[12] = timesheet_data[11]               # Hrs Invoiced\n",
-    "                data_row[13] = timesheet_data[14]               # Subtotal\n",
-    "        else:\n",
-    "            data_row[12] = 0\n",
-    "            data_row[13] = 0\n",
-    "\n",
-    "# print(invoice_data_dictionary)"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 22,
-   "id": "d1d484fa",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# invoice_data_dictionary       \n",
-    "# ['Generate Invoice?', 'Invoice Number', 'Invoice Date', 'Period Start Date'\n",
-    "#  , 'Period End Date', 'Client Number', 'Client Name', 'Client Address'\n",
-    "#  , 'Client Phone (Primary)', 'Client Email (Primary)', 'Preferred Payment Method'\n",
-    "#  , 'Enrollment Date', 'Hrs Invoiced', 'Subtotal']\n",
-    "\n",
-    "# client_data_dictionary\n",
-    "# ['Client Number', 'Client Name', 'Client Address', 'Client Phone (Primary)'\n",
-    "#  , 'Client Phone (Secondary)', 'Client Email (Primary)', 'Client Email (Secondary)'\n",
-    "#  , 'Preferred Payment Method', 'Enrollment Date']\n",
-    "\n",
-    "# timesheet data_dictionary\n",
-    "# ['Client Number', 'Client Name', 'Client Address', 'Day of Service'\n",
-    "#  , 'Month of Service', 'Year of Service', 'Date of Service', 'Weekday of Service'\n",
-    "#  , 'Month of Service', 'Start Time', 'End Time', 'Hours', 'Description of Service(s)'\n",
-    "#  , 'Rate/hr (CAD)', 'Client Per Diem']"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 23,
-   "id": "d62fe509",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# retrieve the headers from the data_dictionaries and store them as lists\n",
-    "client_data_header_list    = client_data_dictionary[0]\n",
-    "invoice_data_header_list   = invoice_data_dictionary['00000']\n",
-    "timesheet_data_header_list = timesheet_data_dictionary[0]"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 24,
-   "id": "5a1815cb",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "# create a list of dictionaries that associate the header with the data\n",
-    "individual_invoice_list = []\n",
-    "for data_row in list(invoice_data_dictionary.values())[1:]:    \n",
-    "    temp_dict = {}\n",
-    "    for j, value in enumerate(data_row):\n",
-    "        temp_dict[invoice_data_header_list[j]] = data_row[j]\n",
-    "    individual_invoice_list.append(temp_dict)\n",
-    "    \n",
-    "# individual_invoice_list"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "id": "54963796",
-   "metadata": {},
-   "source": [
-    "### Create a docx doc from scratch, infilled with the desired invoice data"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 35,
-   "id": "17507db9",
-   "metadata": {
-    "scrolled": true
-   },
-   "outputs": [
-    {
-     "data": {
-      "application/vnd.jupyter.widget-view+json": {
-       "model_id": "fb466a5c7805426199398126d17f1992",
-       "version_major": 2,
-       "version_minor": 0
-      },
-      "text/plain": [
-       "  0%|          | 0/1 [00:00<?, ?it/s]"
-      ]
-     },
-     "metadata": {},
-     "output_type": "display_data"
-    },
-    {
-     "data": {
-      "application/vnd.jupyter.widget-view+json": {
-       "model_id": "ccfa88ef4783437f932995dcbeafce11",
-       "version_major": 2,
-       "version_minor": 0
-      },
-      "text/plain": [
-       "  0%|          | 0/1 [00:00<?, ?it/s]"
-      ]
-     },
-     "metadata": {},
-     "output_type": "display_data"
-    },
-    {
-     "data": {
-      "application/vnd.jupyter.widget-view+json": {
-       "model_id": "4dbc223c598a4432b616bc52ec15934f",
-       "version_major": 2,
-       "version_minor": 0
-      },
-      "text/plain": [
-       "  0%|          | 0/1 [00:00<?, ?it/s]"
-      ]
-     },
-     "metadata": {},
-     "output_type": "display_data"
-    },
-    {
-     "data": {
-      "application/vnd.jupyter.widget-view+json": {
-       "model_id": "ceaa5fe5180e4ea98e27b50240b31a5e",
-       "version_major": 2,
-       "version_minor": 0
-      },
-      "text/plain": [
-       "  0%|          | 0/1 [00:00<?, ?it/s]"
-      ]
-     },
-     "metadata": {},
-     "output_type": "display_data"
-    }
-   ],
-   "source": [
-    "# create a function to make rows in a table bold\n",
-    "def make_rows_bold(*rows):\n",
-    "    for row in rows:\n",
-    "        for cell in row.cells:\n",
-    "            for paragraph in cell.paragraphs:\n",
-    "                for run in paragraph.runs:\n",
-    "                    run.font.bold = True\n",
-    "\n",
-    "# loop through the invoice data to generate invoices for all clients                    \n",
-    "for i, data in enumerate(individual_invoice_list):\n",
-    "    # only target data for which invoice generation option is indicated\n",
-    "    if data['Generate Invoice?'] == 'Yes':\n",
-    "        #create a save string\n",
-    "        save_string = 'Invoice_'+data['Invoice Number']+'_'+data['Client Name']+'_'+data['Invoice Date']\n",
-    "        docx_save_string = save_string +'.docx'\n",
-    "        pdf_save_string  = 'PDFs/'+ save_string +'.pdf'\n",
-    "        \n",
-    "        if path.exists(docx_save_string):\n",
-    "            remove(docx_save_string)\n",
-    "            \n",
-    "        if path.exists(pdf_save_string):\n",
-    "            remove(pdf_save_string)\n",
-    "        \n",
-    "        # create a document object to store invoice information\n",
-    "        document = Document()\n",
-    "        \n",
-    "        # add header info here\n",
-    "        header_dict = {\n",
-    "            'business_owner_name'       : 'My Business' \n",
-    "            , 'business_owner_address1' : '1234 Fake St'\n",
-    "            , 'business_owner_address2' : 'Edmonton, AB T6C 4C7'\n",
-    "            , 'business_owner_phone'    : '555-555-5555'\n",
-    "            , 'business_owner_email'    : 'mybusinessemail@me.com'\n",
-    "        }\n",
-    "\n",
-    "        client_billing_info_list = list(individual_invoice_list[i].values())[6:10]\n",
-    "        \n",
-    "        ####################################\n",
-    "        # create the header \n",
-    "        # create a line for business owner name\n",
-    "        business_owner_name_line = document.add_paragraph()\n",
-    "\n",
-    "        # make the business_owner_name bold\n",
-    "        business_owner_name_line.add_run(list(header_dict.values())[0]).bold=True\n",
-    "\n",
-    "        # add remaining header info to the doc\n",
-    "        for line in list(header_dict.values())[1:]:\n",
-    "            document.add_paragraph(line)\n",
-    "\n",
-    "        ####################################\n",
-    "        document.add_paragraph().add_run('\\n')\n",
-    "        ####################################\n",
-    " \n",
-    "        # add invoice number\n",
-    "        document.add_paragraph('Invoice Number: ' + list(individual_invoice_list[i].values())[1])\n",
-    "        # add invoice date\n",
-    "        document.add_paragraph('Invoice Date: ' + list(individual_invoice_list[i].values())[2])\n",
-    "        document.add_paragraph('For services incurred between the dates of ' + list(individual_invoice_list[i].values())[3]\\\n",
-    "                               + ' and ' + list(individual_invoice_list[i].values())[4])\n",
-    "        document.add_paragraph('Due on receipt')\n",
-    "\n",
-    "        ####################################\n",
-    "        document.add_paragraph().add_run('\\n')\n",
-    "        ####################################\n",
-    "\n",
-    "        # create the bill_to section\n",
-    "        bill_to_line = document.add_paragraph()\n",
-    "\n",
-    "        bill_to_line.add_run('BILL TO:').bold=True\n",
-    "\n",
-    "        for line in client_billing_info_list:\n",
-    "            document.add_paragraph(line)\n",
-    "\n",
-    "        ####################################\n",
-    "        document.add_paragraph().add_run('\\n')\n",
-    "        ####################################\n",
-    "        \n",
-    "        #add a table of the description of services\n",
-    "        table = document.add_table(rows=1, cols=6)\n",
-    "\n",
-    "        # create the table header rows by defining the cells\n",
-    "        header_cells        = table.rows[0].cells\n",
-    "        invoice_header_list = ['Date','','Description','Rate','Qty','Amount']\n",
-    "\n",
-    "        for i in list(range(0, len(invoice_header_list))):\n",
-    "            header_cells[i].text = invoice_header_list[i]\n",
-    "\n",
-    "        # create empty lists for desired data\n",
-    "        date_data        = []\n",
-    "        day_data         = []\n",
-    "        qty_data         = []\n",
-    "        description_data = []\n",
-    "        rate_data        = []\n",
-    "        amount_data      = []\n",
-    "\n",
-    "        for data_row in list(timesheet_data_dictionary.values())[1:]:    \n",
-    "            # match data on client name\n",
-    "            if data_row[1] == client_billing_info_list[0]:\n",
-    "                date_data.append(data_row[6])                      # date\n",
-    "                day_data.append(data_row[7])                       # weekday\n",
-    "                qty_data.append(data_row[11])                      # hrs worked\n",
-    "                description_data.append(data_row[12])              # desription\n",
-    "                rate_data.append(data_row[13])                     # rate\n",
-    "                amount_data.append(data_row[14])                   # client per diem\n",
-    "\n",
-    "        # calculate subtotals\n",
-    "        # total hours invoiced\n",
-    "        total_hours = sum(hrs for hrs in qty_data)\n",
-    "\n",
-    "        # total amount due\n",
-    "        total_amount = sum(amount for amount in amount_data)   \n",
-    "\n",
-    "        # add cumulative data for final row of table\n",
-    "        date_data.append('')\n",
-    "        day_data.append('')\n",
-    "        qty_data.append(total_hours)\n",
-    "        description_data.append('Total ($ CAD)')\n",
-    "        rate_data.append('')\n",
-    "        amount_data.append(total_amount)\n",
-    "\n",
-    "        # convert ints and floats into strings\n",
-    "        day_data = [data[:3] for data in day_data]\n",
-    "        qty_data = [str(data)+' hrs' for data in qty_data]\n",
-    "        rate_data = ['$ '+str(data)+' /hr'for data in rate_data]\n",
-    "        amount_data = ['$ '+str(data) for data in amount_data]\n",
-    "\n",
-    "        for i in list(range(0, len(description_data))):\n",
-    "            row_cells = table.add_row().cells\n",
-    "            row_cells[0].text = day_data[i]\n",
-    "            row_cells[1].text = date_data[i]\n",
-    "            row_cells[2].text = description_data[i]\n",
-    "            row_cells[3].text = rate_data[i]\n",
-    "            row_cells[4].text = qty_data[i]\n",
-    "            row_cells[5].text = amount_data[i]\n",
-    "\n",
-    "        # reset the column widths in the table, where necessary\n",
-    "        for cell in table.columns[0].cells:\n",
-    "            cell.width = Inches(0.5)\n",
-    "        for cell in table.columns[1].cells:\n",
-    "            cell.width = Inches(2.0)\n",
-    "        for cell in table.columns[2].cells:\n",
-    "            cell.width = Inches(3.5)\n",
-    "        for cell in table.columns[3].cells:\n",
-    "            cell.width = Inches(2.0)\n",
-    "        for cell in table.columns[4].cells:\n",
-    "            cell.width = Inches(2.0)\n",
-    "\n",
-    "        make_rows_bold(table.rows[0])\n",
-    "        make_rows_bold(table.rows[-1])\n",
-    "            \n",
-    "        ####################################\n",
-    "        # document.add_paragraph().add_run('\\n')\n",
-    "        ####################################\n",
-    "\n",
-    "        payment_info_line = document.add_paragraph()\n",
-    "        payment_info_line.add_run('Payment Info').bold = True\n",
-    "        document.add_paragraph('Send e-transfer payment to: '+ header_dict['business_owner_email'])\n",
-    "\n",
-    "        # format the line spacing for all the lines in the doc\n",
-    "        for line in document.paragraphs:\n",
-    "            line.paragraph_format.space_after = Pt(1)  \n",
-    "            \n",
-    "        # save the document as a word doc\n",
-    "        document.save(docx_save_string)\n",
-    "                \n",
-    "        # convert the word doc to a pdf, store it in a separate folder\n",
-    "        convert(docx_save_string, pdf_save_string)\n",
-    "        \n",
-    "        # delete the word doc version\n",
-    "        remove(docx_save_string)"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "9021e009",
-   "metadata": {},
-   "outputs": [],
-   "source": []
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "PythonData",
-   "language": "python",
-   "name": "pythondata"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.7.15"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+# import dependencies
+import pandas as pd
+import os
+import openpyxl
+import docx
+import docx2pdf 
+
+from os import remove, path
+from docx import Document
+from docx.shared import Inches
+from docx.shared import Pt
+from docx2pdf import convert
+from datetime import datetime
+
+# define the filepath to the desired xlsx workbook and docx document
+cwd                = os.getcwd()
+xlsx_filename      = 'Invoice_Data.xlsx'
+xlsx_full_filepath = cwd + '\\' + xlsx_filename
+
+
+# access the xlsx workbook
+wb = openpyxl.load_workbook(filename = xlsx_full_filepath)
+
+# create a dictionary of data from each worksheet
+
+# 1. 'Clients'
+# retrieve the client numbers from the 'Clients' worksheet
+client_count            = max([item.value for item in wb['Clients']['A'] if isinstance(item.value, int) == True])
+extra                   = client_count + 1
+client_numbers_list_int = list(range(0, extra))
+client_numbers_list_str = [str(int) for int in client_numbers_list_int]
+
+# create a dictionary of all the client data, using the CLIENT_NUMBERS as keys and the remainder of the client data as values
+client_data_dictionary  = {}
+# remove the first item in the list so the full list can be iterated (row '0' is a header column)
+client_numbers_list_int.pop(0)
+# add the extra item to the list so the full list can be iterated
+client_numbers_list_int.append(extra)
+for row_num in client_numbers_list_int:
+    client_data_list = []
+    for row in wb['Clients'][row_num]:
+        client_data_list.append(row.value)
+        client_data_dictionary[(row_num-1)] = client_data_list
+        
+# modify the dictionary to make the data readable/usable
+for datarow in list(client_data_dictionary.values())[1:]:
+    datarow[8] = datarow[8].strftime('%m-%d-%Y')
+
+# 2. 'Timesheet'
+timesheet_data_dictionary = {}
+entry_count = len([item.value for item in wb['Timesheet']['A'] if isinstance(item.value, int) == True])
+extra = entry_count + 1
+timesheet_entry_rows_list = list(range(0, extra))
+
+# create a dictionary of all the timesheet data, using ROW_NUMBERS as kes and data as values
+timesheet_data_dictionary = {}
+# remove the first item in the list so full list can be iterated (row '0' is a header column)
+timesheet_entry_rows_list.pop(0)
+# add the extra item to the list so the full list can be iterated
+timesheet_entry_rows_list.append(extra)
+for row_num in timesheet_entry_rows_list:
+    timesheet_data_list = []
+    for row in wb['Timesheet'][row_num]:
+        timesheet_data_list.append(row.value)
+        timesheet_data_dictionary[(row_num-1)] = timesheet_data_list
+
+# modify the dictionary to make the data readable/usable
+for data_row in list(timesheet_data_dictionary.values())[1:]:
+    for client_data in list(client_data_dictionary.values()):
+        if data_row[0] == client_data[0]:                           
+            data_row[1] = client_data[1]   # client name
+            data_row[2] = client_data[2]   # client address
+            # Date of Service
+            data_row[6] = datetime(data_row[5], data_row[4], data_row[3]).strftime('%m-%d-%Y')   # Date of Service
+            data_row[7] = datetime(data_row[5], data_row[4], data_row[3]).strftime('%A')         # Weekday of Service
+            data_row[8] = datetime(data_row[5], data_row[4], data_row[3]).strftime('%B')         # Month of Service
+            data_row[9] = data_row[9].strftime('%H:%M')                                          # start time
+            data_row[10] = data_row[10].strftime('%H:%M')                                        # end time
+            data_row[11] = (datetime.strptime(data_row[10], '%H:%M')\
+                            -datetime.strptime(data_row[9],'%H:%M')).seconds/3600                # hrs billed
+            data_row[14] = ((datetime.strptime(data_row[10], '%H:%M')\
+                            -datetime.strptime(data_row[9],'%H:%M')).seconds/3600)*data_row[13]  # client per diem
+
+# 3. 'Invoices'
+# create a dictionary of all the invoice data, using the INVOICE_NUMBERS as keys and the remainder of the invoice data as values
+# be sure to replace anything that appears as formulas with actual data from the client_data_list
+invoice_count = len([item.value for item in wb['Invoices']['B']])-1 # subtract 1 because the first row is a header
+extra = invoice_count + 1
+invoice_list = [item.value for item in wb['Invoices']['B']]
+
+invoice_data_dictionary = {}
+invoice_list.pop(0)
+invoice_list.insert(0, '00000')
+invoice_data_rows_list = list(range(1, len(invoice_list)+1))
+
+for i, invoice_number in enumerate(invoice_list):
+    invoice_data_list = []
+    for data in wb['Invoices'][i+1]:
+        invoice_data_list.append(data.value)
+        invoice_data_dictionary[invoice_number] = invoice_data_list
+
+# create a unique list of the client_numbers that appear in the timesheet dataset
+client_numbers_to_invoice_list = list(set([data_row[0] for data_row in list(timesheet_data_dictionary.values())[1:]]))
+        
+# modify the dictionary to make the data readable/usable
+for data_row in list(invoice_data_dictionary.values())[1:]:
+    for client_data in list(client_data_dictionary.values()):
+        if data_row[5] == client_data[0]:
+            data_row[2]  = data_row[2].strftime('%m-%d-%Y') # Invoice Date
+            data_row[3]  = data_row[3].strftime('%m-%d-%Y') # Period Start Date
+            data_row[4]  = data_row[4].strftime('%m-%d-%Y') # Period End Date
+            data_row[6]  = client_data[1]                   # Client Name
+            data_row[7]  = client_data[2]                   # Client Address
+            data_row[8]  = client_data[3]                   # Client Phone (Primary)
+            data_row[9]  = client_data[5]                   # Client Email (Primary)
+            data_row[10] = client_data[7]                   # Preferred Payment Method
+            data_row[11] = client_data[8]                   # Enrollment Date
+        
+    for timesheet_data in list(timesheet_data_dictionary.values()):
+        if data_row[5] in client_numbers_to_invoice_list:
+            if data_row[5] == timesheet_data[0]:
+                data_row[12] = timesheet_data[11]               # Hrs Invoiced
+                data_row[13] = timesheet_data[14]               # Subtotal
+        else:
+            data_row[12] = 0
+            data_row[13] = 0
+
+# retrieve the headers from the data_dictionaries and store them as lists
+client_data_header_list    = client_data_dictionary[0]
+invoice_data_header_list   = invoice_data_dictionary['00000']
+timesheet_data_header_list = timesheet_data_dictionary[0]
+
+# create a list of dictionaries that associate the header with the data
+individual_invoice_list = []
+for data_row in list(invoice_data_dictionary.values())[1:]:    
+    temp_dict = {}
+    for j, value in enumerate(data_row):
+        temp_dict[invoice_data_header_list[j]] = data_row[j]
+    individual_invoice_list.append(temp_dict)
+
+# ### Create a docx doc from scratch, infilled with the desired invoice data
+# create a function to make rows in a table bold
+def make_rows_bold(*rows):
+    for row in rows:
+        for cell in row.cells:
+            for paragraph in cell.paragraphs:
+                for run in paragraph.runs:
+                    run.font.bold = True
+
+# loop through the invoice data to generate invoices for all clients                    
+for i, data in enumerate(individual_invoice_list):
+    # only target data for which invoice generation option is indicated
+    if data['Generate Invoice?'] == 'Yes':
+        #create a save string
+        save_string = 'Invoice_'+data['Invoice Number']+'_'+data['Client Name']+'_'+data['Invoice Date']
+        docx_save_string = save_string +'.docx'
+        pdf_save_string  = 'PDFs/'+ save_string +'.pdf'
+        
+        if path.exists(docx_save_string):
+            remove(docx_save_string)
+            
+        if path.exists(pdf_save_string):
+            remove(pdf_save_string)
+        
+        # create a document object to store invoice information
+        document = Document()
+        
+        # add header info here
+        header_dict = {
+            'business_owner_name'       : 'My Business' 
+            , 'business_owner_address1' : '1234 Fake St'
+            , 'business_owner_address2' : 'Edmonton, AB T6C 4C7'
+            , 'business_owner_phone'    : '555-555-5555'
+            , 'business_owner_email'    : 'mybusinessemail@me.com'
+        }
+
+        client_billing_info_list = list(individual_invoice_list[i].values())[6:10]
+        
+        ####################################
+        # create the header 
+        # create a line for business owner name
+        business_owner_name_line = document.add_paragraph()
+
+        # make the business_owner_name bold
+        business_owner_name_line.add_run(list(header_dict.values())[0]).bold=True
+
+        # add remaining header info to the doc
+        for line in list(header_dict.values())[1:]:
+            document.add_paragraph(line)
+
+        ####################################
+        document.add_paragraph().add_run('\n')
+        ####################################
+ 
+        # add invoice number
+        document.add_paragraph('Invoice Number: ' + list(individual_invoice_list[i].values())[1])
+        # add invoice date
+        document.add_paragraph('Invoice Date: ' + list(individual_invoice_list[i].values())[2])
+        document.add_paragraph('For services incurred between the dates of ' + list(individual_invoice_list[i].values())[3]\
+                               + ' and ' + list(individual_invoice_list[i].values())[4])
+        document.add_paragraph('Due on receipt')
+
+        ####################################
+        document.add_paragraph().add_run('\n')
+        ####################################
+
+        # create the bill_to section
+        bill_to_line = document.add_paragraph()
+
+        bill_to_line.add_run('BILL TO:').bold=True
+
+        for line in client_billing_info_list:
+            document.add_paragraph(line)
+
+        ####################################
+        document.add_paragraph().add_run('\n')
+        ####################################
+        
+        #add a table of the description of services
+        table = document.add_table(rows=1, cols=6)
+
+        # create the table header rows by defining the cells
+        header_cells        = table.rows[0].cells
+        invoice_header_list = ['Date','','Description','Rate','Qty','Amount']
+
+        for i in list(range(0, len(invoice_header_list))):
+            header_cells[i].text = invoice_header_list[i]
+
+        # create empty lists for desired data
+        date_data        = []
+        day_data         = []
+        qty_data         = []
+        description_data = []
+        rate_data        = []
+        amount_data      = []
+
+        for data_row in list(timesheet_data_dictionary.values())[1:]:    
+            # match data on client name
+            if data_row[1] == client_billing_info_list[0]:
+                date_data.append(data_row[6])                      # date
+                day_data.append(data_row[7])                       # weekday
+                qty_data.append(data_row[11])                      # hrs worked
+                description_data.append(data_row[12])              # desription
+                rate_data.append(data_row[13])                     # rate
+                amount_data.append(data_row[14])                   # client per diem
+
+        # calculate subtotals
+        # total hours invoiced
+        total_hours = sum(hrs for hrs in qty_data)
+
+        # total amount due
+        total_amount = sum(amount for amount in amount_data)   
+
+        # add cumulative data for final row of table
+        date_data.append('')
+        day_data.append('')
+        qty_data.append(total_hours)
+        description_data.append('Total ($ CAD)')
+        rate_data.append('')
+        amount_data.append(total_amount)
+
+        # convert ints and floats into strings
+        day_data = [data[:3] for data in day_data]
+        qty_data = [str(data)+' hrs' for data in qty_data]
+        rate_data = ['$ '+str(data)+' /hr'for data in rate_data]
+        amount_data = ['$ '+str(data) for data in amount_data]
+
+        for i in list(range(0, len(description_data))):
+            row_cells = table.add_row().cells
+            row_cells[0].text = day_data[i]
+            row_cells[1].text = date_data[i]
+            row_cells[2].text = description_data[i]
+            row_cells[3].text = rate_data[i]
+            row_cells[4].text = qty_data[i]
+            row_cells[5].text = amount_data[i]
+
+        # reset the column widths in the table, where necessary
+        for cell in table.columns[0].cells:
+            cell.width = Inches(0.5)
+        for cell in table.columns[1].cells:
+            cell.width = Inches(2.0)
+        for cell in table.columns[2].cells:
+            cell.width = Inches(3.5)
+        for cell in table.columns[3].cells:
+            cell.width = Inches(2.0)
+        for cell in table.columns[4].cells:
+            cell.width = Inches(2.0)
+
+        make_rows_bold(table.rows[0])
+        make_rows_bold(table.rows[-1])
+            
+        ####################################
+        # document.add_paragraph().add_run('\n')
+        ####################################
+
+        payment_info_line = document.add_paragraph()
+        payment_info_line.add_run('Payment Info').bold = True
+        document.add_paragraph('Send e-transfer payment to: '+ header_dict['business_owner_email'])
+
+        # format the line spacing for all the lines in the doc
+        for line in document.paragraphs:
+            line.paragraph_format.space_after = Pt(1)  
+            
+        # save the document as a word doc
+        document.save(docx_save_string)
+                
+        # convert the word doc to a pdf, store it in a separate folder
+        convert(docx_save_string, pdf_save_string)
+        
+        # delete the word doc version
+        remove(docx_save_string)
+
+
