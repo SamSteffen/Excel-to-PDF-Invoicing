@@ -69,7 +69,7 @@ The ‘Timesheet’ worksheet is intended to capture hours, rates of pay, and de
 The data on this page may contain duplicates, as long as the duplicate data pertains to identical clients at different times of the day, or on different days altogether. Users are cautioned to be mindful of how they are entering data in this sheet, to avoid duplicating entries and potentially overcharging clients.    
 In the event that multiple services occur for a client in the course of a single day, the information can be entered on multiple lines, but the lines will also appear separately on the invoice.
 
-![timesheet.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/timesheet.jpg)
+![timesheet.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/Timesheet.jpg)
 
 COLUMN A: **Client Number**    
 The client number is an ID number that is assigned to each new client in the ‘Clients’ worksheet.  ‘1’ represents the first client, ‘2’ the second client and so on. This unique number acts as a ‘key’ for the data associated with it, meaning it is intended to be used to look up information about clients. In the ‘Timesheet’ and ‘Invoices’ worksheets, the client number is used to reference all of the data associated with a particular client. This column cannot be blank, should be a sequential number and must be unique (no duplicates). This data must be input manually. The client number on the ‘Timesheet’ worksheet also must reference an existing client in the ‘clients’ worksheet.    
@@ -131,7 +131,7 @@ This column contains a formula: '= L2*N2'. This is the number of hours charged m
 ## .xlsx Worksheet 3: 'Invoices'
 The 'Invoices' worksheet is intended to provide a summary of the hours to be billed to each client in a given time period. It is also meant to provide a record of past invoices, for the benefit of the business owner. 
 
-![invoices.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/invoices.jpg)
+![invoices.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/Invoices.jpg)
 
 Column A: **Generate Invoice?**    
 
