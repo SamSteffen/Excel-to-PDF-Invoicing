@@ -18,6 +18,7 @@ This program consists of (and requires) the following files:
 (1) import data contained in the ‘invoice_data.xlsx’ worksheet,     
 (2) compile the imported data as an invoice in a word doc (docx) file and     
 (3) save the invoice as a .pdf in the ‘PDFs’ directory.     
+
 This program must be run from the same directory (file folder) that contains the ‘invoice_data.xlsx’ spreadsheet and the (preferably empty) directory called ‘PDFs.’
 
 3.	**PDFs/** - An empty directory that is the output file location for the .pdf file that is created by the invoice_generator.py program. This folder should be empty when the invoice_generator.py program is run, just to avoid confusion between previous (old) invoices and new.
