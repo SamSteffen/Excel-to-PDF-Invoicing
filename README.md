@@ -187,7 +187,7 @@ The user need not touch this column.
 This column contains a formula: "="$ "& SUMIFS(Timesheet!$O:$O, Timesheet!$A:$A, $F2, Timesheet!$G:$G, ">"&$D2, Timesheet!$G:$G, ">"&$E2)" meaning, if the "Date of Service' on the 'Timesheet' worksheet falls between the "Period Start Date" and "Period End Date" fileds on the current (invoices) worksheet, sum the value of the Per Diem amounts billed for the clients with the associated client number.
 
 # EXECUTING THE CODE
-Once the data has been entered into the 'Invoice_Data.xlsx' workbook and the desired values set on the 'Invoices' worksheet, delete all the (prexisting PDF) files from the PDFs directory execute the code.
+Once the data has been entered into the 'Invoice_Data.xlsx' workbook and the desired values set on the 'Invoices' worksheet, delete all the (prexisting PDF) files from the PDFs directory and execute the code.
 
 To execute the Invoice_generator.py file, navigate to the project directory in your GitBash or Linux terminal. Enter the command:
 
@@ -200,6 +200,6 @@ When the code has completed execution, open the 'PDFs' directory to view the gen
 Note that the PDFs are saved as a string of data that includes the invoice number, the name of the client associated with the invoice and the invoice date. This string can be modified to suit the user's preference.
 
 Open a PDF to view your automatically generated invoice:
-![invoice_00002.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/Invoice_0002.jpg)
+![invoice_00002.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/Invoice_00002.jpg)
 
 
