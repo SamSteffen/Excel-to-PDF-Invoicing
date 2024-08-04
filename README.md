@@ -13,11 +13,11 @@ The following is a step-by-step guide for how to use the invoice_generator.py pr
 This program consists of (and requires) the following files:   
 1.	**Invoice_Data.xlsx** – an Excel Spreadsheet (.xlsx) template consisting of three worksheets, “Clients”, “Timesheet”, and “Invoices.” The data the program expects to obtain from these xlsx worksheets is explained below.
 
-2.	**Invoice_generator.py** – a Python program file that utilizes various programming libraries and methods to do the following:
-(1) import data contained in the ‘invoice_data.xlsx’ worksheet, 
-(2) compile the imported data as an invoice in a word doc (docx) file and 
-(3) save the invoice as a .pdf in the ‘PDFs’ directory. 
+2.	**Invoice_generator.py** – a Python program file that utilizes various programming libraries and methods to do the following:    
 
+(1) import data contained in the ‘invoice_data.xlsx’ worksheet,     
+(2) compile the imported data as an invoice in a word doc (docx) file and     
+(3) save the invoice as a .pdf in the ‘PDFs’ directory.     
 This program must be run from the same directory (file folder) that contains the ‘invoice_data.xlsx’ spreadsheet and the (preferably empty) directory called ‘PDFs.’
 
 3.	**PDFs/** - An empty directory that is the output file location for the .pdf file that is created by the invoice_generator.py program. This folder should be empty when the invoice_generator.py program is run, just to avoid confusion between previous (old) invoices and new.
