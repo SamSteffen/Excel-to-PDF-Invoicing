@@ -11,7 +11,7 @@ The following is a step-by-step guide for how to use the invoice_generator.py pr
 
 # THE FILES
 This program consists of (and requires) the following files:   
-1.	**Invoice_Data.xlsx** – an Excel Spreadsheet (.xlsx) template consisting of three worksheets, “Clients”, “Timesheet”, and “Invoices.” The data the program expects to obtain from these xlsx worksheets is explained below.
+1.	**Invoice_Data.xlsx** – an Excel Spreadsheet (.xlsx) template consisting of three worksheets, "Business", “Clients”, “Timesheet”, and “Invoices.” The data the program expects to obtain from these xlsx worksheets is explained below.
 
 2.	**Invoice_generator.py** – a Python program file that utilizes various programming libraries and methods to do the following:    
 
@@ -26,12 +26,30 @@ This program must be run from the same directory (file folder) that contains the
 # PREPARING THE DATA
 ## Invoice_Data.xlsx
 The ‘invoice_data.xlsx’ file is an Excel spreadsheet that contains the following three worksheets:    
-(1) Clients     
-(2) Timesheet    
-(3) Invoices    
+(1) Business
+(2) Clients     
+(3) Timesheet    
+(4) Invoices    
 An explanation of each of these worksheets and the expected data is provided below:
 
-### .xlsx Worksheet 1: ‘Clients’
+### .xlsx Worksheet 1: 'Business'
+The 'Business' worksheet is intended to act as a repository for all the data necessary to share with clients about the business on the invoice itself. Once this data is added it need never be modified unless the business name, phone number or email changes.
+
+![Business.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/Business.jpg)
+
+Column A: **Business Name**
+The name of the business, written as it would appear on the invoice. This column should not be left blank. This data must be input manually one time. Once entered, this data does not need to be updated unless the business name changes.
+
+Column B: **Owner Name**
+The name of the business owner, written as it would appear on the invoice. This column should not be left blank. This data must be input manually one time. Once entered, this data does not need to be updated unless the business owner name changes.
+
+Column C: **Owner Phone**
+The current phone number of the business owner, written in ###-###-#### format, including dashes. This column should not be left blank. This data must be input manually one time. Once entered, this data does not need to be updated unless the business phone number changes.
+
+Column D: **Owner Email**
+The current email address of the business owner. This column should not be left blank. This data must be input manually one time. Once entered, this data does not need to be updated unless the business email address changes.
+
+### .xlsx Worksheet 2: ‘Clients’
 The ‘Clients’ worksheet is intended to act as a repository for all of the data pertaining to the clients of a particular business. The data contained in this worksheet is intended to be unique, meaning there should be no duplicate rows. Once the data is entered onto this page, it is added to other pages using formulas.  
 
 ![clients.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/clients.jpg)
@@ -66,7 +84,7 @@ The date the client was added to the ‘Clients’ page or first utilized the se
 Columns J-Z: *Additional Data Columns, as needed.*     
 There is always room to add more data to this sheet. Other things to capture from clients could include: (1) birthdates, (2) credit card numbers, (3) spouse names, (4)billing address (if different from residential address), etc. These columns are not used in the current iteration of this program.     
 
-### .xlsx Worksheet 2: ‘Timesheet’
+### .xlsx Worksheet 3: ‘Timesheet’
 The ‘Timesheet’ worksheet is intended to capture hours, rates of pay, and descriptions of services performed at client residences/ addresses. This sheet utilizes Excel’s built-in VLOOKUP(), DATE() and TEXT() formulas to save the user time in entering information. The columns that contain formulas have been highlighted in light green, indicating to the user that NO INFORMATION SHOULD BE ADDED TO OR DELETED FROM THESE FIELDS. Based on the user’s input in the white (non-highlighted) cells, the formula-filled fields will be in-filled automatically.    
 The data on this page may contain duplicates, as long as the duplicate data pertains to identical clients at different times of the day, or on different days altogether. Users are cautioned to be mindful of how they are entering data in this sheet, to avoid duplicating entries and potentially overcharging clients.    
 In the event that multiple services occur for a client in the course of a single day, the information can be entered on multiple lines, but the lines will also appear separately on the invoice.
@@ -122,15 +140,17 @@ This column contains a formula: '= ((K2-J2)*1440)/60' This formula subtracts the
 COLUMN M: **Description of Service(s)**    
 A description of services performed. The level of detail here is left to the business owner's discretion. In its current iteration, the invoice document is written to print the description of service on the invoice itself. Lengthy descriptions may result in multiple page-length invoices.
 
-COLUMN N: **Rate/hr (CAD)**    
+COLUMN N: **Workers**
+
+COLUMN O: **Rate/hr (CAD)**    
 The rate of charge, per hour, for services, in Canadian dollars. Should be a whole number or float (decimal) value. Do not include dollar signs.
 
-COLUMN O: **Client Per Diem**    
+COLUMN P: **Client Per Diem**    
 The user need not touch this column.
 This column contains a formula: '= L2*N2'. This is the number of hours charged multiplied by the hourly pay rate. The result is the amount that the client would be invoiced if they were billed for the day.
 
 
-### .xlsx Worksheet 3: 'Invoices'
+### .xlsx Worksheet 4: 'Invoices'
 The 'Invoices' worksheet is intended to provide a summary of the hours to be billed to each client in a given time period. It is also meant to provide a record of past invoices, for the benefit of the business owner. 
 
 ![invoices.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/Invoices.jpg)
@@ -186,6 +206,10 @@ This column contains a formula: '=SUMIFS(Timesheet!$L:$L, Timesheet!$A:$A, $F2, 
 Column N: **Subtotal**    
 The user need not touch this column.
 This column contains a formula: "="$ "& SUMIFS(Timesheet!$O:$O, Timesheet!$A:$A, $F2, Timesheet!$G:$G, ">"&$D2, Timesheet!$G:$G, ">"&$E2)" meaning, if the "Date of Service' on the 'Timesheet' worksheet falls between the "Period Start Date" and "Period End Date" fileds on the current (invoices) worksheet, sum the value of the Per Diem amounts billed for the clients with the associated client number.
+
+Column O: **GST**
+The user need not touch this column.     
+This column contains a formula "="$ "& ROUND(N2*0.05, 2)" meaning, multiply the subtotal value in the N column by 0.05 (representing gross sales tax for Canada) and round the result to 2 decimal places if necessary.
 
 # EXECUTING THE CODE
 Once the data has been entered into the 'Invoice_Data.xlsx' workbook and the desired values set on the 'Invoices' worksheet, delete all the (prexisting PDF) files from the PDFs directory and execute the code.
