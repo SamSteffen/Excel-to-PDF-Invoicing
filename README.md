@@ -11,17 +11,18 @@ The following is a step-by-step guide for how to use the invoice_generator.py pr
 
 # THE FILES
 This program consists of (and requires) the following files:   
-1.	**Invoice_Data.xlsx** – an Excel Spreadsheet (.xlsx) template consisting of three worksheets, "Business", “Clients”, “Timesheet”, and “Invoices.” The data the program expects to obtain from these xlsx worksheets is explained below.
+1.	**Invoice_Data.xlsx** – an Excel Spreadsheet (.xlsx) template consisting of three worksheets, "Business", “Clients”, “Timesheet”, and “Invoices.” The data the program expects to obtain from these worksheets is explained below.
 
 2.	**Invoice_generator.py** – a Python program file that utilizes various programming libraries and methods to do the following:    
 
-(1) import data contained in the ‘invoice_data.xlsx’ worksheet,     
+(1) import data contained in the ‘invoice_data.xlsx’ worksheet,
+(2) import docx starter template from 'invoice_Template.docx' file,   
 (2) compile the imported data as an invoice in a word doc (docx) file and     
-(3) save the invoice as a .pdf in the ‘PDFs’ directory.     
+(3) save the invoice as a .pdf in the ‘PDFs’ directory and delete the word doc version.     
 
 This program must be run from the same directory (file folder) that contains the ‘invoice_data.xlsx’ spreadsheet and the (preferably empty) directory called ‘PDFs.’
 
-3.	**PDFs/** - An empty directory that is the output file location for the .pdf file that is created by the invoice_generator.py program. This folder should be empty when the invoice_generator.py program is run, just to avoid confusion between previous (old) invoices and new.
+3.	**PDFs/** - An empty directory that is the output file location for the .pdf file that is created by the invoice_generator.py program. zIt is recommended but not required that this folder be empty when the invoice_generator.py program is run, just to avoid confusion between previous (old) invoices and new.
 
 # PREPARING THE DATA
 ## Invoice_Data.xlsx
@@ -225,6 +226,6 @@ When the code has completed execution, open the 'PDFs' directory to view the gen
 Note that the PDFs are saved as a string of data that includes the invoice number, the name of the client associated with the invoice and the invoice date. This string can be modified to suit the user's preference.
 
 Open a PDF to view your automatically generated invoice:
-![invoice_00002.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/Invoice_00002.jpg)
+![invoice_00006.png](https://github.com/SamSteffen/Excel-to-PDF-Invoicing/blob/main/Images/Invoice_00006.jpg)
 
 
